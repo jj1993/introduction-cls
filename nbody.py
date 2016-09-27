@@ -9,8 +9,8 @@ import numpy as np
 import pygame
 import time
 
-TIME = 10**8 			#sec total time
-DeltaT = float(10**5) 	#sec per time step
+TIME = 3*10**7 			#sec total time
+DeltaT = float(10**4) 	#sec per time step
 
 class Planet(object):
 	def __init__(self, name, mass, x, y, z, vx, vy, vz):
@@ -48,10 +48,12 @@ def getForces(p1, p2):
 	return -G*m1*m2/rAbs**2 * r/np.linalg.norm(r)
 
 if __name__ == "__main__":
-	sun = Planet("Sun", 2.0*10**30, 0, 0, 0, 0, 0, 0)
-	earth = Planet("Earth", 6.0*10**24, 1.5*10**11, 0, 0, 0, 3.0*10**4, 0)
-	mars = Planet("Mars", 6.4*10**23, 2.3*10**11, 0, 0, 0, 2.0*10**4, 0)
-	planets = [sun, earth, mars]
+	planets = [
+		Planet("Sun", 2.0*10**30, 0, 0, 0, 0, 0, 0),
+		Planet("Star", 2.0*10**30, -1*10**11, 0, 0, 0, 3.0*10**4, 0),
+		Planet("Earth", 6.0*10**24, 1.5*10**11, 0, 0, 0, 3.0*10**4, 0),
+		Planet("Mars", 6.4*10**23, 2.3*10**11, 0, 0, 0, 2.0*10**4, 0)
+		]
 
 	# 	Pygame stuff: http://www.petercollingridge.co.uk/sites/files/peter/universe.txt
 	#   Set up Pygame variables
