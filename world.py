@@ -4,7 +4,7 @@ DENSITYFACTOR = 0.1 # defines how dense the population in communities is
 MAXAGE = 40 # defines a mean year of dying of old age
 MAXAGESPREAD = MAXAGE/10.0 # defines the spread in dying of old age
 BABYRANGE = [16, 35] # range of ages for getting a baby
-BABYCHANCE = 0.05 # change of heaving a baby each year
+BABYCHANCE = 0.125 # chance of heaving a baby each year
 MINFOOD = 1.0 #minimal food value for checkForFood()
 ENCOUNTERDIST = 1 #km? the distance withing an encounter 'counts'
 RECOVERYRATE = 0.5 # the factor the sickness is multiplied by each year
@@ -13,10 +13,11 @@ IMMUNITYGROWTH = 1 # factor to define the amount of immunity growth due to encou
 class Family(Object):
 	def __init__(self, location, members, immunity = 1.0, community = None):
 		self.location = location #[x,y]
-		self.members = members #[person objects]
 		self.hasFood = True
 		self.immunity = immunity #float
 		self.community = community #object or None
+		self.sick = RECOVERYRATE * self.sick
+		self.members = [11, 14, 5, 39]
 
 	def getImmunity(self):
 		return self.immunity
@@ -25,12 +26,10 @@ class Family(Object):
 		return self.community
 
 	def update(self):
-		self.location = locationUpdate(self.location)
 		self.hasFood = checkForFood(self.location, len(self.members))
-		for m in self.members:
-			if self.immunity/m.getSick() > :
+		self.location = locationUpdate(self.location, self.hasFood)
+		self.members = updateMembers(m)
 
-			m.update(self)
 		if doesFoundCommunity(location):
 			newCommunity = Community(
 				len(self.members), self.location, self.immunity, self.community
@@ -62,6 +61,10 @@ class Family(Object):
 		for society in societies:
 			if (society.getDistance(self.location) < ENCOUNTERDIST):
 				encounters.append(society)
+
+			if self.community:
+				changeOfAlliance(self.community, society)
+
 		return encounters
 
 	def getDistance(self, location):
@@ -75,47 +78,37 @@ class Family(Object):
 		self.immunity += growth
 		return
 
+def updateMembers(members):
+	newM = []
+	for m in members:
+		m += 1
+
+		exponent = (m-MAXAGE)/MAXAGESPREAD
+		chanceOfDying = 1/(math.exp(exponent) + 1) # Look at fermi-dirac statistics for shape
+		if random.random() > chanceOfDying:
+			newM.append(m)
+
+		if m in range(BABYRANGE) and random.random() < BABYCHANCE:
+			newM.append(0)
+
+	return newM
+
 def updateLocation(location):
 	pass
 
 def checkForFood(location, nrMembers):
 	food = getRainyValue(location)
-	food += getAllAnimals(location)
+	food += getTemperature(location)
+	food += isRiverClose(location)
 	return MINFOOD > food/nrMembers
 def getRainyValue(location):
 	pass
-def getAnimals(location):
+def getDomesticAnimals(location):
 	pass
 
 def doesFoundCommunity(location):
 	pass
 
-class Person(Object):
-	def __init__(self, age, family):
-		self.age = age #int
-		self.sickness = 0.0 #float
-
-	def getSick(self):
-		return self.sick
-
-	def setSick(self, disease):
-		self.sick = disease
-		return
-
-	def update(self, family):
-		self.age += 1
-		self.sick = RECOVERYRATE * self.sick
-
-		exponent = (self.age-MAXAGE)/MAXAGESPREAD
-		chanceOfDying = 1/(math.exp(exponent) + 1) # Look at fermi-dirac statistics for shape
-		if random.random() > chanceOfDying:
-			family.removeMember(self)
-			return
-
-		if self.age in range(BABYRANGE) and random.random() < BABYCHANCE:
-			family.addMember()
-
-		return
 
 class Community(Object):
 	def __init__(self, population, location, immunity, alliance):
@@ -123,7 +116,7 @@ class Community(Object):
 		self.location = location #[x, y]
 		self.immunity = immunity #float
 		self.development = 1 #float, starts at 1 in communities
-		self.walkers = [] #list of family objects
+		self.explorers = [] #list of family objects
 		if alliance: self.alliances = [alliance]
 		else: self.alliances = []
 
@@ -143,7 +136,6 @@ class Community(Object):
 	def getRadius(self):
 		return DENSITYFACTOR*self.population/self.development
 
-worldMap = [boundary conditions(x,y)]
 families = [family objects]
 communities = [community objects]
 
@@ -169,3 +161,11 @@ def diseaseSpread(member, disease, immunity):
 	if random.random() < chanceOfGettingSick:
 		member.setSick(disease)
 	return
+
+"""
+- Growth (hunters)
+- Growth (societies), more babies
+- Hunters / communities
+- animals
+- 
+"""
