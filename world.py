@@ -161,11 +161,3 @@ def diseaseSpread(member, disease, immunity):
 	if random.random() < chanceOfGettingSick:
 		member.setSick(disease)
 	return
-
-"""
-- Growth (hunters)
-- Growth (societies), more babies
-- Hunters / communities
-- animals
-- 
-"""
