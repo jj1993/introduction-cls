@@ -1,44 +1,30 @@
 import random, math
 import matplotlib.pyplot as plt
-
-"""
-Starting variables
-"""
-FAMILYSIZE = 10
-LATLON = [(-50,40),(-30,40)]
-
-"""
-Other tweaking variables
-"""
-DENSITYFACTOR = 0.1 # defines how dense the population in communities is
-MAXAGE = 40 # defines a mean year of dying of old age
-MAXAGESPREAD = MAXAGE/10.0 # defines the spread in dying of old age
-BABYRANGE = [16, 35] # range of ages for getting a baby
-BABYCHANCE = 0.125 # chance of heaving a baby each year
-MINFOOD = 1.0 #minimal food value for checkForFood()
-ENCOUNTERDIST = 1 #km? the distance withing an encounter 'counts'
-RECOVERYRATE = 0.5 # the factor the sickness is multiplied by each year
-IMMUNITYGROWTH = 1 # factor to define the amount of immunity growth due to encounters with diseases
+import settings
 
 class Family(object):
-	def __init__(self, location, members, immunity = 1.0, community = None):
+	def __init__(self, location, members, mapPoint, immunity = 1.0, community = None):
 		self.location = location #[x,y]
-		self.hasFood = True
 		self.immunity = immunity #float
 		self.community = community #object or None
+		self.mapPoint = mapPoint #visual attribute on the map
+		self.development = 0
 		self.sick = 0
-		self.members = [11, 14, 5, 39]
-
-	def getImmunity(self):
-		return self.immunity
-
-	def getCommunity(self):
-		return self.community
+		self.watersteps = 0 #amount of steps taken on water
+		self.members = members
 
 	def update(self):
-		self.location = locationUpdate(self.location, self.hasFood)
-		# self.hasFood = checkForFood(self.location, len(self.members))
+		self.development += 1
+
 		self.members = updateMembers(self.members)
+		if len(self.members) == 0:
+			self.mapPoint.remove()
+			return False
+
+		self.location, isAlive = updateLocation(self)
+
+		return isAlive
+		# self.hasFood = checkForFood(self.location, len(self.members))
 
 		# if doesFoundCommunity(location):
 		# 	newCommunity = Community(
@@ -61,14 +47,14 @@ class Family(object):
 		encounters = []
 		for family in families:
 			if (family != self and 
-				family.getDistance(self.location) < ENCOUNTERDIST):
+				family.getDistance(self.location) < settings.ENCOUNTERDIST):
 				encounters.append(family)
 		return encounters
 
 	def getSocietyEncounters(self):
 		encounters = []
 		for society in societies:
-			if (society.getDistance(self.location) < ENCOUNTERDIST):
+			if (society.getDistance(self.location) < settings.ENCOUNTERDIST):
 				encounters.append(society)
 
 			if self.community:
@@ -83,32 +69,55 @@ class Family(object):
 
 	def growImmunity(self, disease):
 		if self.immunity > disease: return
-		growth = IMMUNITYGROWTH*(disease-self.immunity)
+		growth = settings.IMMUNITYGROWTH*(disease-self.immunity)
 		self.immunity += growth
 		return
 
-def newFamily(basemap, familyPoints):
-	minLat, maxLat = LATLON[0]
-	minLon, maxLon = LATLON[1]
+	def getDevelopment(self):
+		return self.development
+
+	def getImmunity(self):
+		return self.immunity
+
+	def getCommunity(self):
+		return self.community
+
+	def getLocation(self):
+		return self.location
+
+	def getMapPoint(self):
+		return self.mapPoint
+
+	def getWatersteps(self):
+		return self.watersteps
+
+	def addWaterstep(self):
+		self.watersteps += 1
+
+
+
+def newFamily(basemap):
+	global map
+	map = basemap
+	minLon, maxLon = settings.LONLAT[0]
+	minLat, maxLat = settings.LONLAT[1]
 
 	# Generate initial location on map
-	lat = random.choice(range(minLat, maxLat))
 	lon = random.choice(range(minLon, maxLon))
-	x, y = basemap(lon, lat)
-	while not basemap.is_land(x, y):
-		lat = random.choice(range(minLat, maxLat))
+	lat = random.choice(range(minLat, maxLat))
+	x, y = map(lon, lat)
+	while not map.is_land(x, y):
 		lon = random.choice(range(minLon, maxLon))
-		x, y = basemap(lon, lat)		
+		lat = random.choice(range(minLat, maxLat))
+		x, y = map(lon, lat)	
 
 	# Generate initial members population
-	members = [random.randint(0, MAXAGE) for i in range(random.randint(1, FAMILYSIZE))]
+	members = [random.randint(0, settings.MAXAGE) for i in range(random.randint(1, settings.FAMILYSIZE))]
 
 	# Add families to map
-	p = basemap.plot(x, y, 'bo', markersize=6)
-	plt.text(x, y, len(members))
-	familyPoints.append(p)
-	
-	return Family([x, y], members)
+	p = map.plot(x, y, 'bo', markersize=2)[0]
+
+	return Family([lon, lat], members, p)
 
 def updateMembers(members):
 	newM = []
@@ -117,25 +126,52 @@ def updateMembers(members):
 		m += 1
 
 		# Member can die of old age
-		exponent = (m-MAXAGE)/MAXAGESPREAD
+		exponent = (m-settings.MAXAGE)/settings.MAXAGESPREAD
 		chanceOfDying = 1/(math.exp(exponent) + 1) # Look at fermi-dirac statistics for shape
 		if random.random() < chanceOfDying:
 			newM.append(m)
 
 		# Members can have babies
-		if m in range(BABYRANGE) and random.random() < BABYCHANCE:
+		start, stop = settings.BABYRANGE
+		if m in range(start, stop) and random.random() < settings.BABYCHANCE:
 			newM.append(0)
 
 	return newM
 
-def updateLocation(location):
-	pass
+def updateLocation(family):
+	location = family.getLocation()
+	watersteps = family.getWatersteps()
+	dev = family.getDevelopment()
+
+	dist = settings.travelDist
+	lon, lat = location
+	size = settings.earthR*2*math.pi
+
+	locationFound = False
+	while not locationFound:
+		direction = 2*math.pi*random.random()
+		lonRatio = math.cos(direction)*dist/size
+		latRatio = math.sin(direction)*dist/size
+		newLon = lon + lonRatio*360
+		newLat = lat + latRatio*180
+		x, y = map(newLon, newLat)
+
+		if map.is_land(x, y):
+			break
+		elif dev > 50:
+			if watersteps > dev/10.0:
+				return [], False
+			family.addWaterstep()
+			break
+
+	family.getMapPoint().set_data(x, y)
+	return [newLon, newLat], True
 
 def checkForFood(location, nrMembers):
 	food = getRainyValue(location)
 	food += getTemperature(location)
 	food += isRiverClose(location)
-	return MINFOOD > food/nrMembers
+	return settings.MINFOOD > food/nrMembers
 def getRainyValue(location):
 	pass
 def getDomesticAnimals(location):
@@ -171,21 +207,6 @@ def doesFoundCommunity(location):
 # 	def getRadius(self):
 # 		return DENSITYFACTOR*self.population/self.development
 
-def yearUpdate():
-	# Reproduction and historical diseases update
-	for family in families:
-		family.update()
-
-# 	# New diseases and development update, due to encounters
-# 	for family in families:
-# 		encounters = family.getFamilyEncounters()
-# 		immunity = family.getImmunity()
-# 		for encounter in encounters:
-# 			disease = encounter.getImmunity()
-# 			for member in family.getMembers():
-# 				diseaseSpread(member, disease, immunity)
-# 			family.growImmunity(disease)
-
 
 # def diseaseSpread(member, disease, immunity):
 # 	# Checks if the individual will get sick
@@ -196,4 +217,3 @@ def yearUpdate():
 # 	if random.random() < chanceOfGettingSick:
 # 		member.setSick(disease)
 # 	return
-
