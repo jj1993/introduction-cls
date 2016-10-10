@@ -1,11 +1,14 @@
+import Image
+
 def init():
 	"""
 	Starting variables
 	"""
 	global NUMFAMILIES, FAMILYSIZE, LONLAT
-	NUMFAMILIES = 40
+	NUMFAMILIES = 100
 	FAMILYSIZE = 10
 	LONLAT = [(-30,40),(-50,40)]
+	# LONLAT = [(-180, 180),(-90, 90)]
 
 	"""
 	Other tweaking variables
@@ -25,6 +28,7 @@ def init():
 	"""
 	Traveling
 	"""
-	global earthR, travelDist
+	global earthR, travelDist, LANDMAP
 	earthR = 6371 #km
 	travelDist = 300 #km
+	LANDMAP = Image.open("land.jpg").load()

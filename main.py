@@ -3,7 +3,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random, time
 from populationClasses import newFamily
-from populationClasses import settings
+import settings
+from PIL import Image
+
+def getLand():
+	fig = plt.figure()
+	basemap = Basemap(projection='cyl',llcrnrlat=-90,urcrnrlat=90,\
+	            llcrnrlon=-180,urcrnrlon=180,lat_ts=20,resolution='l')
+	basemap.fillcontinents(color='black',lake_color='black')
+	image = fig.savefig("land.jpg", bbox_inches='tight', pad_inches=0, transparent=True, format="jpg")
 
 def drawMap():
 	plt.ion()
@@ -19,20 +27,21 @@ def drawMap():
 
 	# draw coastlines, country boundaries, fill continents.
 	basemap.drawcoastlines(linewidth=0.25)
-	basemap.fillcontinents(color='coral',lake_color='aqua')
+	land = basemap.fillcontinents(color='coral',lake_color='aqua')
 	# draw the edge of the basemap projection region (the projection limb)
 	basemap.drawmapboundary(fill_color='aqua')
 	# draw parallels and meridians.
 	basemap.drawparallels(np.arange(-90.,91.,30.))
 	basemap.drawmeridians(np.arange(-180.,181.,60.))
 
-	return fig, basemap
+	return fig, basemap, land
 
 if __name__ == "__main__":
 	# Initiate global variables
+	getLand()
 	settings.init()
 	# Initiate map
-	fig, basemap = drawMap()
+	fig, basemap, land = drawMap()
 	# rivers = getRiverPaths()
 
 	# Initiate families on map
@@ -42,7 +51,7 @@ if __name__ == "__main__":
 	plt.title('Some families on the world map')
 	fig.canvas.draw()
 
-	for i in range(100):
+	for i in range(1000):
 		newFamilies = []
 		for family in families:
 			stillAlive = family.update()
@@ -59,9 +68,9 @@ if __name__ == "__main__":
 		# 			diseaseSpread(member, disease, immunity)
 		# 		family.growImmunity(disease)
 
-		fig.canvas.draw()
+		# fig.canvas.draw()
 		print "Timestep ",i
-		# time.sleep(0.02)
+		# time.sleep(.02)
 	# for i in range(5):
 	# 	points, labels = makePoints()
 	# 	time.sleep(2)

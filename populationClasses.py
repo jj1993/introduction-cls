@@ -10,7 +10,6 @@ class Family(object):
 		self.mapPoint = mapPoint #visual attribute on the map
 		self.development = 0
 		self.sick = 0
-		self.watersteps = 0 #amount of steps taken on water
 		self.members = members
 
 	def update(self):
@@ -21,7 +20,7 @@ class Family(object):
 			self.mapPoint.remove()
 			return False
 
-		self.location, isAlive = updateLocation(self)
+		isAlive = updateLocation(self)
 
 		return isAlive
 		# self.hasFood = checkForFood(self.location, len(self.members))
@@ -73,6 +72,9 @@ class Family(object):
 		self.immunity += growth
 		return
 
+	def setLocation(self, location):
+		self.location = location
+
 	def getDevelopment(self):
 		return self.development
 
@@ -88,13 +90,13 @@ class Family(object):
 	def getMapPoint(self):
 		return self.mapPoint
 
-	def getWatersteps(self):
-		return self.watersteps
-
-	def addWaterstep(self):
-		self.watersteps += 1
-
-
+def isLand(location):
+	lon, lat = location
+	x = int((lon+180)/360.0*619)
+	y = int((-lat+90)/180.0*309)
+	if settings.LANDMAP[x,y] == (255, 255, 255):
+		return False
+	return True
 
 def newFamily(basemap):
 	global map
@@ -105,16 +107,16 @@ def newFamily(basemap):
 	# Generate initial location on map
 	lon = random.choice(range(minLon, maxLon))
 	lat = random.choice(range(minLat, maxLat))
-	x, y = map(lon, lat)
-	while not map.is_land(x, y):
+	while not isLand([lon, lat]):	
 		lon = random.choice(range(minLon, maxLon))
 		lat = random.choice(range(minLat, maxLat))
-		x, y = map(lon, lat)	
 
 	# Generate initial members population
 	members = [random.randint(0, settings.MAXAGE) for i in range(random.randint(1, settings.FAMILYSIZE))]
 
 	# Add families to map
+
+	x, y = map(lon, lat)
 	p = map.plot(x, y, 'bo', markersize=2)[0]
 
 	return Family([lon, lat], members, p)
@@ -140,32 +142,28 @@ def updateMembers(members):
 
 def updateLocation(family):
 	location = family.getLocation()
-	watersteps = family.getWatersteps()
 	dev = family.getDevelopment()
 
 	dist = settings.travelDist
 	lon, lat = location
 	size = settings.earthR*2*math.pi
 
-	locationFound = False
-	while not locationFound:
-		direction = 2*math.pi*random.random()
-		lonRatio = math.cos(direction)*dist/size
-		latRatio = math.sin(direction)*dist/size
-		newLon = lon + lonRatio*360
-		newLat = lat + latRatio*180
-		x, y = map(newLon, newLat)
+	if isLand(family.getLocation()):
+		locationFound = False
+		while not locationFound:
+			direction = 2*math.pi*random.random()
+			lonRatio = math.cos(direction)*dist/size
+			latRatio = math.sin(direction)*dist/size
+			newLon = lon + lonRatio*360
+			newLat = lat + latRatio*180
+			locationFound = isLand([newLon, newLat])
 
-		if map.is_land(x, y):
-			break
-		elif dev > 50:
-			if watersteps > dev/10.0:
-				return [], False
-			family.addWaterstep()
-			break
+	else:
+		return True
 
-	family.getMapPoint().set_data(x, y)
-	return [newLon, newLat], True
+	family.setLocation([newLon, newLat])
+	family.getMapPoint().set_data(newLon, newLat)
+	return True
 
 def checkForFood(location, nrMembers):
 	food = getRainyValue(location)
