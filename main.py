@@ -67,6 +67,34 @@ def griddensity():
         k=1.89*(10^5) # Calculated from Total Surface area by total number of GRIDS
         global GRIDDENSITY
         GRIDDENSITY=GRIDPOPULATION/k
+
+# Checking if family is in a bad zones
+# Bad zones are those regions where human habitation is not probable (Deserts, Artic Zones, Mountains)         
+# 0 means you can't inhabit, 0.5 possible but hard. Migration through these routes possible
+# 1 means migration as well as settlement is possible
+def badzones(x,y):
+    if y>=60:
+        return 0
+    elif (x>=115 and x<=150) and (y>=-30 and x<=-15):
+        return 0.5
+    elif x>=85 and y>=50:
+        return 0.5
+    elif x<=-10 and y>=50:
+        return 0.5
+    elif (x>=-120 and x<=-90) and (y>=35 and x<=45):
+        return 0.5
+    elif (x>=-10 and x<=30) and (y>=15 and x<=30):
+        return 0.5
+    else:
+        return 1   
+    
+#Regions where domesticatable wild plants arise after the glacial meltdown(Last ICE AGE)
+def agriculturecentres():
+    #Going for Karate. Will define after that
+
+# I will explain why this function is important when we meet    
+def barrier():    
+    #Going for Karate. Will define after that
         
           
 if __name__ == "__main__":
