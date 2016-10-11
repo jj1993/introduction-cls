@@ -61,9 +61,10 @@ def modifygrid(x,y):
         i=int((x-(-180))/5)
         j=int((90-y)/5)
         GRIDPOPULATION[i,j]=+1
-                       
+
+# Calculates population density per GRID                        
 def griddensity():
-        k=1.89*(10^5)
+        k=1.89*(10^5) # Calculated from Total Surface area by total number of GRIDS
         global GRIDDENSITY
         GRIDDENSITY=GRIDPOPULATION/k
         
