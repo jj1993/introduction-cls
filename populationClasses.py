@@ -18,10 +18,10 @@ class Family(object):
 		self.members = updateMembers(self.members)
 		if len(self.members) == 0:
 			self.mapPoint.remove()
-			return False
+			isAlive = False
+			return isAlive
 
 		isAlive = updateLocation(self)
-
 		return isAlive
 		# self.hasFood = checkForFood(self.location, len(self.members))
 
@@ -30,6 +30,18 @@ class Family(object):
 		# 		len(self.members), self.location, self.immunity, self.community
 		# 		)
 		# 	communities.append(newCommunity)
+
+	def split(self):
+		half = int(0.5*len(self.members))
+		members = self.members
+		random.shuffle(members)
+		remaining = members[:half]
+		leaving =  members[half:]
+		self.members = remaining
+		x, y = self.location
+		newPoint = map.plot(x, y, 'bo', markersize=2)[0]
+		return Family([x, y], leaving, newPoint, self.immunity) # No bounds with community are maintained
+
 
 	def removeMember(self, member):
 		for i, m in enumerate(self.members):
@@ -75,6 +87,9 @@ class Family(object):
 	def setLocation(self, location):
 		self.location = location
 
+	def getMembers(self):
+		return self.members
+
 	def getDevelopment(self):
 		return self.development
 
@@ -92,8 +107,8 @@ class Family(object):
 
 def isLand(location):
 	lon, lat = location
-	x = int((lon+180)/360.0*619)
-	y = int((-lat+90)/180.0*309)
+	x = int((lon+180)/360.0*616)
+	y = int((-lat+90)/180.0*307)
 	if settings.LANDMAP[x,y] == (255, 255, 255):
 		return False
 	return True
@@ -122,23 +137,10 @@ def newFamily(basemap):
 	return Family([lon, lat], members, p)
 
 def updateMembers(members):
-	newM = []
-	for m in members:
-		# Member grows one year older
-		m += 1
-
-		# Member can die of old age
-		exponent = (m-settings.MAXAGE)/settings.MAXAGESPREAD
-		chanceOfDying = 1/(math.exp(exponent) + 1) # Look at fermi-dirac statistics for shape
-		if random.random() < chanceOfDying:
-			newM.append(m)
-
-		# Members can have babies
-		start, stop = settings.BABYRANGE
-		if m in range(start, stop) and random.random() < settings.BABYCHANCE:
-			newM.append(0)
-
-	return newM
+	newMembers = [m+1 for m in members if m < settings.MAXAGE]
+	babies = [0 for m in members if m in settings.BABYRANGE and random.random() < settings.BABYCHANCE]
+	newMembers.extend(babies)
+	return newMembers
 
 def updateLocation(family):
 	location = family.getLocation()
@@ -154,7 +156,7 @@ def updateLocation(family):
 			direction = 2*math.pi*random.random()
 			lonRatio = math.cos(direction)*dist/size
 			latRatio = math.sin(direction)*dist/size
-			newLon = lon + lonRatio*360
+			newLon = (lon + lonRatio*360)
 			newLat = lat + latRatio*180
 			locationFound = isLand([newLon, newLat])
 

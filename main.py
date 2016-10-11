@@ -51,9 +51,11 @@ if __name__ == "__main__":
 	plt.title('Some families on the world map')
 	fig.canvas.draw()
 
-	for i in range(1000):
+	for i in range(250):
 		newFamilies = []
 		for family in families:
+			if len(family.getMembers()) > 30:
+				newFamilies.append(family.split())
 			stillAlive = family.update()
 			if stillAlive: newFamilies.append(family)
 		families = newFamilies
@@ -68,9 +70,16 @@ if __name__ == "__main__":
 		# 			diseaseSpread(member, disease, immunity)
 		# 		family.growImmunity(disease)
 
-		# fig.canvas.draw()
+		numPersons, totAge = 0, 0
+		for family in families:
+			members = family.getMembers()
+			numPersons += len(members)
+			totAge += sum(members)
+
+		fig.canvas.draw()
 		print "Timestep ",i
-		# time.sleep(.02)
+		print "Total people {}".format(numPersons)
+		print "Average age {}".format(totAge/float(numPersons))
 	# for i in range(5):
 	# 	points, labels = makePoints()
 	# 	time.sleep(2)
