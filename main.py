@@ -38,7 +38,7 @@ def drawMap():
 
 if __name__ == "__main__":
 	# Initiate global variables
-	getLand()
+	# getLand()
 	settings.init()
 	# Initiate map
 	fig, basemap, land = drawMap()
@@ -76,7 +76,7 @@ if __name__ == "__main__":
 			numPersons += len(members)
 			totAge += sum(members)
 
-		fig.canvas.draw()
+		# fig.canvas.draw()
 		print "Timestep ",i
 		print "Total people {}".format(numPersons)
 		print "Average age {}".format(totAge/float(numPersons))
