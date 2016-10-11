@@ -4,6 +4,7 @@ import numpy as np
 import random, time
 from populationClasses import newFamily
 import settings
+import math
 from PIL import Image
 
 def getLand():
@@ -22,7 +23,7 @@ def drawMap():
 	# of the basemap.
 	# lat_ts is the latitude of true scale.
 	# resolution = 'c' means use crude resolution coastlines.
-	basemap = Basemap(projection='cyl',llcrnrlat=-80,urcrnrlat=80,\
+	basemap = Basemap(projection='cyl',llcrnrlat=-90,urcrnrlat=90,\
 	            llcrnrlon=-180,urcrnrlon=180,lat_ts=20,resolution='c')
 
 	# draw coastlines, country boundaries, fill continents.
@@ -36,13 +37,31 @@ def drawMap():
 	
 	return fig, basemap, land
 
+#Initializes the GRID
 def makegrid():
          w=len(np.arange(-180.,181.,5))
          h=len(np.arange(-90.,91.,5))
+         global GRIDPOPULATION
          gridpopulation=np.zeros((w,h))
          return gridpopulation
-#def changegrid(grid):
-                
+
+#Calculates Temperature at X,Y
+def getTemperature(x,y):
+        if (y<=16 and y>=-20):
+            T=27
+        else:
+            if y>16:
+                T=40.76-0.86*y
+            else:
+                T=39.6-0.63*(math.fabs(y))
+        return T
+
+#Adds population to the specific GRID        
+def modifygrid(x,y):
+        i=int((x-(-180))/5)
+        j=int((90-y)/5)
+        GRIDPOPULATION[i,j]=+1
+                       
         
           
 if __name__ == "__main__":
