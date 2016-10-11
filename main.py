@@ -42,8 +42,8 @@ def makegrid():
          w=len(np.arange(-180.,181.,5))
          h=len(np.arange(-90.,91.,5))
          global GRIDPOPULATION
-         gridpopulation=np.zeros((w,h))
-         return gridpopulation
+         GRIDPOPULATION=np.zeros((w-1,h-1))
+         
 
 #Calculates Temperature at X,Y
 def getTemperature(x,y):
@@ -63,38 +63,93 @@ def modifygrid(x,y):
         GRIDPOPULATION[i,j]=+1
 
 # Calculates population density per GRID                        
-def griddensity():
-        k=1.89*(10^5) # Calculated from Total Surface area by total number of GRIDS
+def griddensity(): # Calculated by using the formula you suggested
         global GRIDDENSITY
-        GRIDDENSITY=GRIDPOPULATION/k
+        GRIDDENSITY=np.zeros((w-1,h-1))
+
+        for i in range(18): 
+            pi1=math.radians(90-5*i)
+            pi2=math.radians(pi1-5)
+            k=math.fabs(3.5*10^6*(math.sin(pi1)-math.sin(pi2))) 
+            GRIDDENSITY[i,:]=GRIDPOPULATION[i,:]/k
+            GRIDDENSITY[35-i,:]=GRIDPOPULATION[35-i,:]/k         
 
 # Checking if family is in a bad zones
 # Bad zones are those regions where human habitation is not probable (Deserts, Artic Zones, Mountains)         
 # 0 means you can't inhabit, 0.5 possible but hard. Migration through these routes possible
 # 1 means migration as well as settlement is possible
 def badzones(x,y):
-    if y>=60:
+    if y>=60:#Artic Zones
         return 0
-    elif (x>=115 and x<=150) and (y>=-30 and x<=-15):
+    elif (x>=115 and x<=150) and (y>=-30 and y<=-15): #Deserts in Australia
         return 0.5
-    elif x>=85 and y>=50:
+    elif x>=85 and y>=50: #Parts of Russia and Syberia
         return 0.5
-    elif x<=-10 and y>=50:
+    elif x<=-10 and y>=50: #Alaska, Greeland
         return 0.5
-    elif (x>=-120 and x<=-90) and (y>=35 and x<=45):
+    elif (x>=-120 and x<=-90) and (y>=35 and y<=45): # North American Desert
         return 0.5
-    elif (x>=-10 and x<=30) and (y>=15 and x<=30):
+    elif (x>=-10 and x<=30) and (y>=15 and y<=30): #Sahara Desert
         return 0.5
-    else:
+    else: # Everywhere else
         return 1   
-    
-#Regions where domesticatable wild plants arise after the glacial meltdown(Last ICE AGE)
-def agriculturecentres():
-    #Going for Karate. Will define after that
 
-# I will explain why this function is important when we meet    
-def barrier():    
-    #Going for Karate. Will define after that
+
+
+
+        
+#Regions where domesticatable wild plants arise after the glacial meltdown(Last ICE AGE)
+def agriculturecentres(time): #time in years(BC)
+    if time==8500:
+        return 37.5,42.5 #x=35,y=40 Fertile Cresent
+    elif time==7500:
+        return 117.5,37.5 #x=115,y=35 China
+    elif time==7000:
+        return 142.5,-7.5 #x=140,y=-5 New Guinea
+    elif time==5000:
+        return 7.5,12.5 #x=5,y=10 Sahel
+    elif time==3500:
+        return -97.5,17.5 #x=-100,y=15 Mesoamerica
+    elif time==3400:
+        return -72.5,-2.5 #x=-75,y=-5 Andes and Amazonion
+    elif time==3000:
+        return 2.5,12.5 #x=0,y=10 Tropical West Africa
+    elif time==2500:
+        return -87.5,37.5 #x=-85,y=35 Eastern US
+    else:
+        return 0,0 #Agriculture is not activated anywhere
+
+# This function identifies the relevant cell number from the population grid. 
+#And returns 1 percent of total families in that cell to which are to be mutated to Farmers
+def activatefarmers(x,y): # x,y here are the return values of agriculturecentres()
+     i=int((x-(-180))/5)
+     j=int((90-y)/5)
+     return 0.01*GRIDPOPULATION[i,j]
+         
+#Checks for availabilty at x,y. Returns within 0-1 Scale. 0 being null amount, 1 being high amount(13 Cattles). 
+# 0.5 is to be taken as moderate amount
+
+# The return value need to affect the rate of agriculture at each location         
+def cattlesavailable(x,y):
+    if (x>=-10 and x<=40) and (y>=35 and y<=75): #Eurasia 1
+        return 1
+    elif (x>40 and x<50) and (y>=15 and y<=75): #Eurasia 2
+        return 1
+    elif (x>=50) and (y>=0): #Eurasia 3
+        return 1
+    elif (x>=-85 and x<=-35) and (y<=10 and y>=-55): # South America
+        return 1/13 # or give another value maybe 0.1
+    else: #Rest of the continent
+        return 0
+    
+    
+        
+# I will explain why these two functions are important when we meet    
+#def barrier():    
+    #Wednesday morning
+#def areacorrelation(x1,y1,x2,y2):
+    #Wednesday morning
+
         
           
 if __name__ == "__main__":
@@ -114,6 +169,7 @@ if __name__ == "__main__":
 
 	plt.title('Some families on the world map')
 	fig.canvas.draw()
+	
 
 	for i in range(250):
 		newFamilies = []
