@@ -62,6 +62,10 @@ def modifygrid(x,y):
         j=int((90-y)/5)
         GRIDPOPULATION[i,j]=+1
                        
+def griddensity():
+        k=1.89*(10^5)
+        global GRIDDENSITY
+        GRIDDENSITY=GRIDPOPULATION/k
         
           
 if __name__ == "__main__":
