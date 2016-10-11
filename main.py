@@ -31,18 +31,30 @@ def drawMap():
 	# draw the edge of the basemap projection region (the projection limb)
 	basemap.drawmapboundary(fill_color='aqua')
 	# draw parallels and meridians.
-	basemap.drawparallels(np.arange(-90.,91.,30.))
-	basemap.drawmeridians(np.arange(-180.,181.,60.))
-
+	basemap.drawparallels(np.arange(-90.,91.,5))
+	basemap.drawmeridians(np.arange(-180.,181.,5))
+	
 	return fig, basemap, land
 
+def makegrid():
+         w=len(np.arange(-180.,181.,5))
+         h=len(np.arange(-90.,91.,5))
+         gridpopulation=np.zeros((w,h))
+         return gridpopulation
+#def changegrid(grid):
+                
+        
+          
 if __name__ == "__main__":
 	# Initiate global variables
 	getLand()
 	settings.init()
+	
 	# Initiate map
 	fig, basemap, land = drawMap()
 	# rivers = getRiverPaths()
+	G=makegrid()
+	
 
 	# Initiate families on map
 	families = [newFamily(basemap) for i in range(settings.NUMFAMILIES)]
