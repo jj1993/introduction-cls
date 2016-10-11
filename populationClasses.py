@@ -138,7 +138,7 @@ def newFamily(basemap):
 
 def updateMembers(members):
 	newMembers = [m+1 for m in members if m < settings.MAXAGE]
-	babies = [0 for m in members if m in settings.BABYRANGE and random.random() < settings.BABYCHANCE]
+	babies = [0 for m in members if m > 16 and random.random() < settings.BABYCHANCE]
 	newMembers.extend(babies)
 	return newMembers
 
