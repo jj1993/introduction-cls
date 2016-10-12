@@ -17,7 +17,7 @@ def init():
 	DENSITYFACTOR = 0.1 # defines how dense the population in communities is
 	MAXAGE = 40 # defines a mean year of dying of old age
 	MAXAGESPREAD = MAXAGE/10.0 # defines the spread in dying of old age
-	BABYRANGE = range(16, 35) # range of ages for getting a baby
+	BABYRANGE = (16, 35) # range of ages for getting a baby
 	BABYCHANCE = 0.125 # chance of heaving a baby each year
 	MINFOOD = 1.0 #minimal food value for checkForFood()
 	ENCOUNTERDIST = 1 #km? the distance withing an encounter 'counts'
