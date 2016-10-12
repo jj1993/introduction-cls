@@ -1,6 +1,7 @@
 import random, math
 import matplotlib.pyplot as plt
 import settings
+import numpy as np
 
 class Family(object):
 	def __init__(self, location, members, mapPoint, immunity = 1.0, community = None):
@@ -15,7 +16,6 @@ class Family(object):
 	def update(self):
 		self.development += 1
 
-		self.members = updateMembers(self.members)
 		if len(self.members) == 0:
 			self.mapPoint.remove()
 			isAlive = False
@@ -41,18 +41,6 @@ class Family(object):
 		x, y = self.location
 		newPoint = map.plot(x, y, 'bo', markersize=2)[0]
 		return Family([x, y], leaving, newPoint, self.immunity) # No bounds with community are maintained
-
-
-	def removeMember(self, member):
-		for i, m in enumerate(self.members):
-			if m == member:
-				del self.members[i]
-				return
-		raise ValueError ("Member is not part of family")
-
-	def addMember(self):
-		self.members.append(0)
-		return
 
 	def getFamilyEncounters(self):
 		encounters = []
@@ -89,6 +77,9 @@ class Family(object):
 
 	def getMembers(self):
 		return self.members
+
+	def setMembers(self, members):
+		self.members = members
 
 	def getDevelopment(self):
 		return self.development
@@ -127,7 +118,9 @@ def newFamily(basemap):
 		lat = random.choice(range(minLat, maxLat))
 
 	# Generate initial members population
-	members = [random.randint(0, settings.MAXAGE) for i in range(random.randint(1, settings.FAMILYSIZE))]
+	members = set([
+		random.randint(0, settings.MAXAGE) for i in range(random.randint(1, settings.FAMILYSIZE))
+		])
 
 	# Add families to map
 
@@ -135,12 +128,6 @@ def newFamily(basemap):
 	p = map.plot(x, y, 'bo', markersize=2)[0]
 
 	return Family([lon, lat], members, p)
-
-def updateMembers(members):
-	newMembers = [m+1 for m in members if m < settings.MAXAGE]
-	babies = [0 for m in members if m > 16 and random.random() < settings.BABYCHANCE]
-	newMembers.extend(babies)
-	return newMembers
 
 def updateLocation(family):
 	location = family.getLocation()

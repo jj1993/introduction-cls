@@ -32,8 +32,8 @@ def drawMap():
 	# draw the edge of the basemap projection region (the projection limb)
 	basemap.drawmapboundary(fill_color='aqua')
 	# draw parallels and meridians.
-	basemap.drawparallels(np.arange(-90.,91.,5))
-	basemap.drawmeridians(np.arange(-180.,181.,5))
+	# basemap.drawparallels(np.arange(-90.,91.,5))
+	# basemap.drawmeridians(np.arange(-180.,181.,5))
 	
 	return fig, basemap, land
 
@@ -90,12 +90,31 @@ def badzones(x,y):
     
 #Regions where domesticatable wild plants arise after the glacial meltdown(Last ICE AGE)
 def agriculturecentres():
+	pass
     #Going for Karate. Will define after that
 
 # I will explain why this function is important when we meet    
 def barrier():    
+	pass
     #Going for Karate. Will define after that
-        
+
+def getCM(families):
+	# Get the centre position of all the families
+	positions = []
+	for family in families:
+		pos = family.getLocation()
+		positions.append(pos)
+	positions = np.array(positions)
+	return np.mean(positions, axis=0)
+
+def update(members):
+	# Filter old age
+	members = [[n for n in m if n<settings.MAXAGE] for m in members]
+	# Filter baby possibilities
+	pregnant = [[0 for n in m if n>settings.BABYRANGE[0] and n<settings.BABYRANGE[1] and random.random()<settings.BABYCHANCE] for m in members]
+	# Concatinate lists
+	return [[a+1 for b in c for a in b] for c in zip(members,pregnant)]
+
           
 if __name__ == "__main__":
 	# Initiate global variables
@@ -110,7 +129,7 @@ if __name__ == "__main__":
 
 	# Initiate families on map
 	families = [newFamily(basemap) for i in range(settings.NUMFAMILIES)]
-	# communities = []
+	familyMembers = np.array([family.getMembers() for family in families])
 
 	plt.title('Some families on the world map')
 	fig.canvas.draw()
@@ -118,11 +137,19 @@ if __name__ == "__main__":
 	for i in range(250):
 		newFamilies = []
 		for family in families:
-			if len(family.getMembers()) > 30:
+			if len(family.getMembers()) > 300:
 				newFamilies.append(family.split())
 			stillAlive = family.update()
 			if stillAlive: newFamilies.append(family)
 		families = newFamilies
+
+		# More efficiently update the familie members
+		familyMembers = [family.getMembers() for family in families]
+		newMembers = update(familyMembers)
+		[family.setMembers(newMembers[n]) for n, family in enumerate(families)]
+
+		# Get centre of mass coordinate
+		CM = getCM(families)
 
 		# # New diseases and development update, due to encounters
 		# for family in families:
@@ -134,6 +161,7 @@ if __name__ == "__main__":
 		# 			diseaseSpread(member, disease, immunity)
 		# 		family.growImmunity(disease)
 
+		# Get some feedback on the world population
 		numPersons, totAge = 0, 0
 		for family in families:
 			members = family.getMembers()
