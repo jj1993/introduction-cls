@@ -37,18 +37,6 @@ def drawMap():
 	
 	return fig, basemap, land
 
-#Calculates Temperature at X,Y
-def getTemperature(x,y):
-	# Highest temperature returns 1, lowest returns 0
-	if (y<=16 and y>=-20):
-		T=27
-	else:
-		if y>16:
-			T=40.76-0.86*y
-		else:
-			T=39.6-0.63*abs(y)
-	return (T+36)/63.0
-       
 #Regions where domesticatable wild plants arise after the glacial meltdown(Last ICE AGE)
 def agriculturecentres(time): #time in years(BC)
 	time = 1000 - time

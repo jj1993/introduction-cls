@@ -26,6 +26,8 @@ class Family(object):
 			return isAlive
 
 		isAlive = updateLocation(self)
+		[lon,lat]=self.location
+		getCondition(self)
 		return isAlive
 		# self.hasFood = checkForFood(self.location, len(self.members))
 
@@ -200,12 +202,43 @@ def diseaseSpread(family, disease, immunity):
 		family.setMembers(members[:n])
  	return
 
+def normGriddensity(POPULATION,x,y,numofperson):
+        i=int((lon-(-180))/5)
+        j=int((90-lat)/5)
+        normpopulation=POPULATION[i,j]/numofperson
+        normpopulation=-normpopulation+1
+        
+        return normpopulation
+
+def getTemperature(x,y):
+	if (y<=16 and y>=-20):
+		T=27
+	else:
+		if y>16:
+			T=40.76-0.86*y
+		else:
+			T=39.6-0.63*(math.fabs(y))
+	return (T+36)/63.0    
+# Checking for Malnouttrition Function
+#Checks for the amount of calorie per grid and temperature
+
+def getCondition(family):
+	[lon,lat]=family.getLocation    
+	value=normGriddensity(settings.GRIDPOPULATION,lon,lat)*getTemperature(lon,lat)
+	value=-value+1
+	if random.random() > value:
+		n = int(len(family.getMembers()*(value)))
+
+		members = family.getMembers()
+		np.shuffle(members)
+		family.setMembers(members[:n])
+
 #Adds population to the specific GRID        
 def modifygrid(x,y,members):
-        i=int((x-(-180))/5)
-        j=int((90-y)/5)
-        settings.GRIDPOPULATION[i,j]=+members
-        #return GRIDPOPULATION
+	i=int((x-(-180))/5)
+	j=int((90-y)/5)
+	settings.GRIDPOPULATION[i,j]=+members
+	#return GRIDPOPULATION
 
 # Calculates population density per GRID                        
 def griddensity(): # Calculated by using the formula you suggested
