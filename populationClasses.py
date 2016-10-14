@@ -202,10 +202,11 @@ def diseaseSpread(family, disease, immunity):
 		family.setMembers(members[:n])
  	return
 
-def normGriddensity(POPULATION,x,y,numofperson):
+def normGriddensity(POPULATION,lon,lat):
         i=int((lon-(-180))/5)
         j=int((90-lat)/5)
-        normpopulation=POPULATION[i,j]/numofperson
+        normpopulation=POPULATION[i,j]/np.sum(POPULATION)
+        print("normpopulation")
         normpopulation=-normpopulation+1
         
         return normpopulation
@@ -223,7 +224,7 @@ def getTemperature(x,y):
 #Checks for the amount of calorie per grid and temperature
 
 def getCondition(family):
-	[lon,lat]=family.getLocation    
+	[lon,lat]=family.getLocation()    
 	value=normGriddensity(settings.GRIDPOPULATION,lon,lat)*getTemperature(lon,lat)
 	value=-value+1
 	if random.random() > value:
