@@ -37,9 +37,6 @@ def drawMap():
 	
 	return fig, basemap, land
 
-
-         
-
 #Calculates Temperature at X,Y
 def getTemperature(x,y):
         if (y<=16 and y>=-20):
@@ -50,16 +47,8 @@ def getTemperature(x,y):
             else:
                 T=39.6-0.63*(math.fabs(y))
         return T
-
-
-  
-
-
-
-
-        
+       
 #Regions where domesticatable wild plants arise after the glacial meltdown(Last ICE AGE)
-
 def agriculturecentres(time): #time in years(BC)
         if time==8500:
             return 37.5,42.5 #x=35,y=40 Fertile Cresent
@@ -87,9 +76,8 @@ def activatefarmers(x,y): # x,y here are the return values of agriculturecentres
         j=int((90-y)/5)
         return 0.01*GRIDPOPULATION[i,j]
          
-#Checks for availabilty at x,y. Returns within 0-1 Scale. 0 being null amount, 1 being high amount(13 Cattles). 
+# Checks for availabilty at x,y. Returns within 0-1 Scale. 0 being null amount, 1 being high amount(13 Cattles). 
 # 0.5 is to be taken as moderate amount
-
 # The return value need to affect the rate of agriculture at each location         
 def cattlesavailable(x,y):
         if (x>=-10 and x<=40) and (y>=35 and y<=75): #Eurasia 1
@@ -102,20 +90,13 @@ def cattlesavailable(x,y):
             return 1/13 # or give another value maybe 0.1
         else: #Rest of the continent
             return 0
-    
-    
-        
+
 # I will explain why these two functions are important when we meet    
-#def barrier():    
-   #Wednesday morning
-
-
-#def areacorrelation(x1,y1,x2,y2):
-    #Wednesday morning
+def barrier():
+	pass
+def areacorrelation(x1,y1,x2,y2):
+	pass
     
-
-
-
 def getCM(families):
 	# Get the centre position of all the families
 	positions = []
@@ -138,13 +119,9 @@ if __name__ == "__main__":
 	# Initiate global variables
 	# getLand()
 	settings.init()
-	#print(settings.LONLAT)
+
 	# Initiate map
 	fig, basemap, land = drawMap()
-	# rivers = getRiverPaths()
-	
-	
-	
 
 	# Initiate families on map
 	families = [pC.newFamily(basemap) for i in range(settings.NUMFAMILIES)]
@@ -155,27 +132,19 @@ if __name__ == "__main__":
 	fig.canvas.draw()
 	
 
-	for i in range(250):
+	for i in range(10000):
 		newFamilies = []
-		#kk=0
 		for family in families:
-		  
-			if len(family.getMembers()) > 300:
-			        #print("Iam here")
+			if len(family.getMembers()) > len(families):
 				newFamilies.append(family.split())
 			stillAlive = family.update()
 			if stillAlive: newFamilies.append(family)
-			#kk=+1
 		families = newFamilies
-		#i=+1
 
 		# More efficiently update the familie members
 		familyMembers = np.array([family.getMembers() for family in families])
 		newMembers = update(familyMembers)
 		[family.setMembers(newMembers[n]) for n, family in enumerate(families)]
-
-		# Get centre of mass coordinate
-		CM = getCM(families)
 
 		# # New diseases and development update, due to encounters
 		# for family in families:
@@ -189,49 +158,15 @@ if __name__ == "__main__":
 
 		# Get some feedback on the world population
 		numPersons, totAge = 0, 0
-		#Gin=G
 		for family in families:
 			loc=family.getLocation()
 			members = family.getMembers()
 			pC.modifygrid(loc[0],loc[1],len(members))
 			numPersons += len(members)
 			totAge += sum(members)
-			#Gin=Gout
 		pC.griddensity()
 
-		# fig.canvas.draw()
+		fig.canvas.draw()
 		print "Timestep ",i
 		print "Total people {}".format(numPersons)
 		print "Average age {}".format(totAge/float(numPersons))
-	# for i in range(5):
-	# 	points, labels = makePoints()
-	# 	time.sleep(2)
-	# 	for p in points:
-	# 		p.remove()
-	# 	labels.remove() #this doesn't work...
-
-
-# def getRiverPaths():
-# 	# Get river paths without drawing
-# 	m = Basemap()
-# 	rivers = m.drawrivers().get_paths()
-
-# 	## Some code for using the river_path objects
-# 	# for i in range(len(rivers)):
-# 	#     poly_path = rivers[i]
-	    
-# 	#     # get the Basebasemapcoordinates of each segment
-# 	#     coords_cc = np.array(
-# 	#         [(vertex[0],vertex[1]) 
-# 	#          for (vertex,code) in poly_path.iter_segments(simplify=False)]
-# 	#     )
-	    
-# 	#     # convert coordinates to lon/lat by 'inverting' the Basebasemapprojection
-# 	#     lon_cc, lat_cc = m(coords_cc[:,0],coords_cc[:,1], inverse=True)
-
-# 	#     x, y = map(lon_cc, lat_cc)
-	    
-# 	#     # add plot
-# 	#     basemap.plot(x, y, 'b-')
-
-# 	return rivers
