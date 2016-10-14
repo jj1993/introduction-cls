@@ -44,9 +44,10 @@ def getTemperature(x,y):
         else:
             if y>16:
                 T=40.76-0.86*y
+                
             else:
                 T=39.6-0.63*(math.fabs(y))
-        return T
+        return (T+36)/63.0
        
 #Regions where domesticatable wild plants arise after the glacial meltdown(Last ICE AGE)
 def agriculturecentres(time): #time in years(BC)
