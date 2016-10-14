@@ -13,9 +13,10 @@ def init():
 	"""
 	Starting variables
 	"""
-	global NUMFAMILIES, FAMILYSIZE, LONLAT
+	global NUMFAMILIES, FAMILYSIZE, LONLAT, COMMUNITYSIZE
 	NUMFAMILIES = 30
 	FAMILYSIZE = 10
+	COMMUNITYSIZE = 100
 	LONLAT = [(-30,40),(-50,40)]
 	# LONLAT = [(160, 175),(60, 80)]
 
@@ -27,11 +28,9 @@ def init():
 	MAXAGE = 40 # defines a mean year of dying of old age
 	MAXAGESPREAD = MAXAGE/10.0 # defines the spread in dying of old age
 	BABYRANGE = (16, 35) # range of ages for getting a baby
-	BABYCHANCE = 0.07#125 # chance of heaving a baby each year
-	MINFOOD = 1.0 #minimal food value for checkForFood()
+	BABYCHANCE = 0.06#125 # chance of heaving a baby each year
 	ENCOUNTERDIST = 10 #km? the distance withing an encounter 'counts'
-	RECOVERYRATE = 0.5 # the factor the sickness is multiplied by each year
-	IMMUNITYGROWTH = 1 # factor to define the amount of immunity growth due to 
+	IMMUNITYGROWTH = .06 # factor to define the amount of immunity growth due to 
 					   # encounters with diseases
 
 	"""

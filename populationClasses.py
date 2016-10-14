@@ -42,7 +42,7 @@ class Family(object):
 		self.members, leaving = members[:half], members[half:]
 		return Family(self.location, leaving, self.direction, self.immunity) # No bounds with community are maintained
 
-	def getFamilyEncounters(self):
+	def getFamilyEncounters(self, families):
 		encounters = []
 		for family in families:
 			if (family != self and 
@@ -50,14 +50,14 @@ class Family(object):
 				encounters.append(family)
 		return encounters
 
-	def getSocietyEncounters(self):
+	def getSocietyEncounters(self, societies):
 		encounters = []
 		for society in societies:
 			if (society.getDistance(self.location) < settings.ENCOUNTERDIST):
 				encounters.append(society)
 
-			if self.community:
-				changeOfAlliance(self.community, society)
+			# if self.community:
+			# 	changeOfAlliance(self.community, society)
 
 		return encounters
 
@@ -68,7 +68,7 @@ class Family(object):
 
 	def growImmunity(self, disease):
 		if self.immunity > disease: return
-		growth = settings.IMMUNITYGROWTH*(disease-self.immunity)
+		growth = settings.IMMUNITYGROWTH*(disease-self.immunity + 1)
 		self.immunity += growth
 		return
 
@@ -103,6 +103,9 @@ class Family(object):
 		self.waterSteps += 1
 		return self.waterSteps
 
+	def getWaterSteps(self):
+		return self.waterSteps
+
 	def setLastDirection(self, direction):
 		self.direction = direction
 
@@ -131,9 +134,9 @@ def newFamily(basemap):
 		lat = random.choice(range(minLat, maxLat))
 
 	# Generate initial members population
-	members = set([
+	members = [
 		random.randint(0, settings.MAXAGE) for i in range(random.randint(1, settings.FAMILYSIZE))
-		])
+		]
 
 	return Family([lon, lat], members)
 
@@ -182,19 +185,20 @@ def updateLocation(family):
 	return True
 
 
-"""
-SICK FUNCTION
-
-def diseaseSpread(member, disease, immunity):
+def diseaseSpread(family, disease, immunity):
  	#Checks if the individual will get sick
- 	if member.getSick() > disease: return
+ 	if immunity > disease: return
 
  	exponent = (immunity-disease)/(disease/5.0)
  	chanceOfGettingSick = 1/(math.exp(exponent) + 1) # Look at fermi-dirac statistics for shape
- 	if random.random() < chanceOfGettingSick:
- 		member.setSick(disease)
+
+	if random.random() < chanceOfGettingSick:
+		ratio = immunity/float(disease)
+		members = family.getMembers()
+		np.random.shuffle(members)
+		n = int(round(ratio*len(members)))
+		family.setMembers(members[:n])
  	return
-"""
 
 #Adds population to the specific GRID        
 def modifygrid(x,y,members):
@@ -215,7 +219,7 @@ def griddensity(): # Calculated by using the formula you suggested
             pi2=math.radians(90-5*(i+1))
             k=math.fabs(3.5*(10**6)*(math.sin(pi1)-math.sin(pi2))) 
             GRIDDENSITY[i,:]=settings.GRIDPOPULATION[i,:]/k
-            GRIDDENSITY[35-i,:]=settings.GRIDPOPULATION[35-i,:]/k         
+            GRIDDENSITY[35-i,:]=settings.GRIDPOPULATION[35-i,:]/k     
 
 # Checking if family is in a bad zones
 # Bad zones are those regions where human habitation is not probable (Deserts, Artic Zones, Mountains)         
@@ -237,29 +241,36 @@ def badzones(x,y):
         else: # Everywhere else
             return 1 
 
-# class Community(object):
-# 	def __init__(self, population, location, immunity, alliance):
-# 		self.population = population #integer
-# 		self.location = location #[x, y]
-# 		self.immunity = immunity #float
-# 		self.development = 1 #float, starts at 1 in communities
-# 		self.explorers = [] #list of family objects
-# 		if alliance: self.alliances = [alliance]
-# 		else: self.alliances = []
+class Community(object):
+	def __init__(self, members, location, immunity):#, alliance=None):
+		self.members = members #integer
+		self.location = location #[x, y]
+		self.immunity = immunity #float
+		self.development = 1 #float, starts at 1 in communities
+		self.explorers = [] #list of family objects
+		# if alliance: self.alliances = [alliance]
+		# else: self.alliances = []
 
-# 	def getSize(self):
-# 		return self.population
+		x, y = location
+		mapPoint = map.plot(x, y, 'ro', markersize=4)[0]
+		self.mapPoint = mapPoint #visual attribute on the map
 
-# 	def updateAlliances(self):
-# 		for community in self.alliances:
-# 			if community.getSize() > self.population:
-# 				del community
+	def getMembers(self):
+		return self.members
 
-# 	def getDistance(self, location):
-# 		x1, y1 = self.location
-# 		x2, y2 = location
-# 		return math.sqrt((x1-x2)**2 + (y1 - y2)**2)
+	def updateAlliances(self):
+		for community in self.alliances:
+			if community.getSize() > self.population:
+				del community
 
-# 	def getRadius(self):
-# 		return DENSITYFACTOR*self.population/self.development
+	def getDistance(self, location):
+		x1, y1 = self.location
+		x2, y2 = location
+		return math.sqrt((x1-x2)**2 + (y1 - y2)**2)
+
+	def getRadius(self):
+		return DENSITYFACTOR*self.population/self.development
+
+	def getGrowthPossbilities(self):
+		return self.development/len(self.members)
 
