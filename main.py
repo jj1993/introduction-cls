@@ -131,7 +131,7 @@ def update(members):
 	# Filter baby possibilities
 	pregnant = [[0 for n in m if n>settings.BABYRANGE[0] and n<settings.BABYRANGE[1] and random.random()<settings.BABYCHANCE] for m in members]
 	# Concatinate lists
-	print("Working")
+	#print("Working")
 	return [[a+1 for b in c for a in b] for c in zip(members,pregnant)]
           
 if __name__ == "__main__":
@@ -161,7 +161,7 @@ if __name__ == "__main__":
 		for family in families:
 		  
 			if len(family.getMembers()) > 300:
-			        print("Iam here")
+			        #print("Iam here")
 				newFamilies.append(family.split())
 			stillAlive = family.update()
 			if stillAlive: newFamilies.append(family)
