@@ -1,4 +1,15 @@
 from PIL import Image
+import numpy as np
+
+def makegrid(): #Initializes the GRID
+         w=len(np.arange(-180.,181.,5))
+         h=len(np.arange(-90.,91.,5))
+         global GRIDPOPULATION
+         GRIDPOPULATION=np.zeros((w-1,h-1))
+         #return GRIDPOPULATION
+        
+        
+#makegrid()
 
 def init():
 	"""
@@ -32,3 +43,10 @@ def init():
 	earthR = 6371 #km
 	travelDist = 300 #km
 	LANDMAP = Image.open("land.jpg").load()
+	
+	"""
+	Initializes Population Grid
+	"""
+	makegrid()
+
+

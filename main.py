@@ -2,7 +2,7 @@ from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt
 import numpy as np
 import random, time
-from populationClasses import newFamily
+import populationClasses as pC 
 import settings
 import math
 from PIL import Image
@@ -32,17 +32,12 @@ def drawMap():
 	# draw the edge of the basemap projection region (the projection limb)
 	basemap.drawmapboundary(fill_color='aqua')
 	# draw parallels and meridians.
-	# basemap.drawparallels(np.arange(-90.,91.,5))
-	# basemap.drawmeridians(np.arange(-180.,181.,5))
+	#basemap.drawparallels(np.arange(-90.,91.,5))
+	#basemap.drawmeridians(np.arange(-180.,181.,5))
 	
 	return fig, basemap, land
 
-#Initializes the GRID
-def makegrid():
-         w=len(np.arange(-180.,181.,5))
-         h=len(np.arange(-90.,91.,5))
-         global GRIDPOPULATION
-         GRIDPOPULATION=np.zeros((w-1,h-1))
+
          
 
 #Calculates Temperature at X,Y
@@ -56,50 +51,15 @@ def getTemperature(x,y):
                 T=39.6-0.63*(math.fabs(y))
         return T
 
-#Adds population to the specific GRID        
-def modifygrid(x,y):
-        i=int((x-(-180))/5)
-        j=int((90-y)/5)
-        GRIDPOPULATION[i,j]=+1
 
-# Calculates population density per GRID                        
-def griddensity(): # Calculated by using the formula you suggested
-        global GRIDDENSITY
-        GRIDDENSITY=np.zeros((w-1,h-1))
-
-        for i in range(18): 
-            pi1=math.radians(90-5*i)
-            pi2=math.radians(pi1-5)
-            k=math.fabs(3.5*10^6*(math.sin(pi1)-math.sin(pi2))) 
-            GRIDDENSITY[i,:]=GRIDPOPULATION[i,:]/k
-            GRIDDENSITY[35-i,:]=GRIDPOPULATION[35-i,:]/k         
-
-# Checking if family is in a bad zones
-# Bad zones are those regions where human habitation is not probable (Deserts, Artic Zones, Mountains)         
-# 0 means you can't inhabit, 0.5 possible but hard. Migration through these routes possible
-# 1 means migration as well as settlement is possible
-def badzones(x,y):
-        if y>=60:#Artic Zones
-            return 0
-        elif (x>=115 and x<=150) and (y>=-30 and y<=-15): #Deserts in Australia
-            return 0.5
-        elif x>=85 and y>=50: #Parts of Russia and Syberia
-            return 0.5
-        elif x<=-10 and y>=50: #Alaska, Greeland
-            return 0.5
-        elif (x>=-120 and x<=-90) and (y>=35 and y<=45): # North American Desert
-            return 0.5
-        elif (x>=-10 and x<=30) and (y>=15 and y<=30): #Sahara Desert
-            return 0.5
-        else: # Everywhere else
-            return 1   
+  
 
 
 
 
         
 #Regions where domesticatable wild plants arise after the glacial meltdown(Last ICE AGE)
-<<<<<<< HEAD
+
 def agriculturecentres(time): #time in years(BC)
         if time==8500:
             return 37.5,42.5 #x=35,y=40 Fertile Cresent
@@ -147,14 +107,14 @@ def cattlesavailable(x,y):
         
 # I will explain why these two functions are important when we meet    
 #def barrier():    
-    #Wednesday morning
+   #Wednesday morning
+
+
 #def areacorrelation(x1,y1,x2,y2):
     #Wednesday morning
+    
 
-        
-=======
 
-# I will explain why this function is important when we meet    
 
 def getCM(families):
 	# Get the centre position of all the families
@@ -171,24 +131,25 @@ def update(members):
 	# Filter baby possibilities
 	pregnant = [[0 for n in m if n>settings.BABYRANGE[0] and n<settings.BABYRANGE[1] and random.random()<settings.BABYCHANCE] for m in members]
 	# Concatinate lists
+	print("Working")
 	return [[a+1 for b in c for a in b] for c in zip(members,pregnant)]
-
->>>>>>> e8797d165e550195c8771f3a37c27b97c54209a1
           
 if __name__ == "__main__":
 	# Initiate global variables
 	# getLand()
 	settings.init()
-	
+	#print(settings.LONLAT)
 	# Initiate map
 	fig, basemap, land = drawMap()
 	# rivers = getRiverPaths()
-	G=makegrid()
+	
+	
 	
 
 	# Initiate families on map
-	families = [newFamily(basemap) for i in range(settings.NUMFAMILIES)]
+	families = [pC.newFamily(basemap) for i in range(settings.NUMFAMILIES)]
 	familyMembers = np.array([family.getMembers() for family in families])
+	print(familyMembers[1])
 
 	plt.title('Some families on the world map')
 	fig.canvas.draw()
@@ -196,15 +157,20 @@ if __name__ == "__main__":
 
 	for i in range(250):
 		newFamilies = []
+		#kk=0
 		for family in families:
+		  
 			if len(family.getMembers()) > 300:
+			        print("Iam here")
 				newFamilies.append(family.split())
 			stillAlive = family.update()
 			if stillAlive: newFamilies.append(family)
+			#kk=+1
 		families = newFamilies
+		#i=+1
 
 		# More efficiently update the familie members
-		familyMembers = [family.getMembers() for family in families]
+		familyMembers = np.array([family.getMembers() for family in families])
 		newMembers = update(familyMembers)
 		[family.setMembers(newMembers[n]) for n, family in enumerate(families)]
 
@@ -223,10 +189,15 @@ if __name__ == "__main__":
 
 		# Get some feedback on the world population
 		numPersons, totAge = 0, 0
+		#Gin=G
 		for family in families:
+			loc=family.getLocation()
 			members = family.getMembers()
+			pC.modifygrid(loc[0],loc[1],len(members))
 			numPersons += len(members)
 			totAge += sum(members)
+			#Gin=Gout
+		pC.griddensity()
 
 		# fig.canvas.draw()
 		print "Timestep ",i
