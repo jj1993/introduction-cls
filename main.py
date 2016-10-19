@@ -41,9 +41,9 @@ def drawMap():
 def agriculturecentres(time): #time in years(BC)
 	time = 1000 - time
 	if time==850:
-		return [37.5,42.5] #x=35,y=40 Fertile Cresent
+		return [37.5,38.5] #x=35,y=40 Fertile Cresent
 	elif time==750:
-		return [117.5,37.5] #x=115,y=35 China
+		return [117.5,36.5] #x=115,y=35 China
 	elif time==700:
 		return [142.5,-7.5] #x=140,y=-5 New Guinea
 	elif time==500:
@@ -58,18 +58,20 @@ def agriculturecentres(time): #time in years(BC)
 		return [-87.5,37.5] #x=-85,y=35 Eastern US
 	else:
 		return False #Agriculture is not activated anywhere
-
+"""
 # This function identifies the relevant cell number from the population grid. 
 #And returns 1 percent of total families in that cell to which are to be mutated to Farmers
 def activatefarmers(x,y): # x,y here are the return values of agriculturecentres()
-    i=int((x-(-180))/5)
-    j=int((90-y)/5)
+    j=int((x-(-180))/5)
+    i=int((90-y)/5)
     return 0.01*GRIDPOPULATION[i,j]
-         
+"""         
 # Checks for availabilty at x,y. Returns within 0-1 Scale. 0 being null amount, 1 being high amount(13 Cattles). 
 # 0.5 is to be taken as moderate amount
 # The return value need to affect the rate of agriculture at each location         
-def cattlesavailable(x,y):
+def cattlesavailable(loc):
+    x=loc[0]
+    y=loc[1]
     if (x>=-10 and x<=40) and (y>=35 and y<=75): #Eurasia 1
         return 1
     elif (x>40 and x<50) and (y>=15 and y<=75): #Eurasia 2
@@ -95,15 +97,38 @@ def getCM(families):
 		positions.append(pos)
 	positions = np.array(positions)
 	return np.mean(positions, axis=0)
-
+"""
 def update(members):
 	# Filter old age
+	members_list = [m for m in members]
+	idx_maxage = [np.where(m == settings.MAXAGE)[0] for m in members_list]
+	members_list_new = [np.delete(members_list[i],idx_maxage[i]) for i in xrange(len(idx_maxage))]
+	idx_pregnant = [np.where(
+		(m > settings.BABYRANGE[1]) & (m < settings.BABYRANGE[0]) & (random.random()<settings.BABYCHANCE)
+		)[0] for m in members_list]
+	members_list_new = [np.append(members_list_new[i],np.zeros_like(idx_pregnant[i])) for i in xrange(len(idx_pregnant))]
+	return members_list_new
+
+"""
+def update(members, type, location=None):
+	# Filter old age
 	members = [[n for n in m if n<settings.MAXAGE] for m in members]
-	# Filter baby possibilities
-	pregnant = [[0 for n in m if n>settings.BABYRANGE[0] and n<settings.BABYRANGE[1] and random.random()<settings.BABYCHANCE] for m in members]
-	# Concatinate lists
+	if type:#Farmers:
+	    # Filter baby possibilities
+   	    
+   	    pregnant = [[0 for n in m if n>settings.BABYRANGE[0] and n<settings.BABYRANGE[1] and random.random()<settings.FARMERBABYCHANCE*cattlesavailable(loc)] for m,loc in zip(members,location)]
+   	else: #Hunters
+   	    pregnant = [[0 for n in m if n>settings.BABYRANGE[0] and n<settings.BABYRANGE[1] and random.random()<settings.HUNTERBABYCHANCE] for m in members]
+   	# Concatinate lists
 	#print("Working")
 	return [[a+1 for b in c for a in b] for c in zip(members,pregnant)]
+
+def makegrid(): #Initializes the GRID
+         w=len(np.arange(-180.,181.,5))
+         h=len(np.arange(-90.,91.,5))
+         
+         GRIDPOPULATION=np.zeros((h-1,w-1))
+         return GRIDPOPULATION
           
 if __name__ == "__main__":
 	# Initiate global variables
@@ -116,64 +141,181 @@ if __name__ == "__main__":
 	# Initiate families on map
 	families = [pC.newFamily(basemap) for i in range(settings.NUMFAMILIES)]
 	communities = []
+	community=None
 
 	plt.title('Some families on the world map')
 	fig.canvas.draw()
-	
+	GRIDPOPULATION=makegrid()
+	d=0
+	dd=0
+	numPersons=0
+	numPersonsprev=0
+	numFarmers=0
+	FARMING=False
 
-	for t in range(10000):
-
-		agri = agriculturecentres(t)
-		if agri:
-			members = [
-						random.randint(0, settings.MAXAGE) for i in range(settings.COMMUNITYSIZE)
-						]
-			immunity = np.mean(immunities)
-			community = pC.Community(members, agri, immunity)
-			communities.append(community)
-
+	for t in range(10000):		
+	        numPersons, totAge = 0, 0
+	        numFarmers, totAgeF=0, 0
+		#counting the number of people
+		for family in families:
+			#loc=family.getLocation()
+			members = family.getMembers()
+			
+			#print(GRIDPOPULATION[k[0],k[1]])
+			numPersons += len(members)
+			totAge += sum(members)
+	        
+	        GRIDPOPULATION=makegrid()
+		for family in families:
+      		        loc=family.getLocation()
+      		        members=family.getMembers()
+      		        
+      		        GRIDPOPULATION=pC.modifygrid(loc[0],loc[1],len(members),GRIDPOPULATION)
+      		
+      		for community in communities:
+      		        loc=family.getLocation()
+      		        members=community.getMembers()
+      		        
+      		        GRIDPOPULATION=pC.modifygrid(loc[0],loc[1],len(members),GRIDPOPULATION)
+      		
+      		GRIDDENSITY=pC.griddensity(GRIDPOPULATION, numPersons)
+      		for family in families:
+      		        d=pC.getCondition(family,GRIDDENSITY,d)
+	        
+		
+		
+	        
+      		        
 		# Large families are split
+		#newFamilies = []
+		#for family in families:
+		#    x,y=family.getLocation()
+		#    if pC.GriDensity(GRIDDENSITY,x,y) < .00001 and random.random()<1:
+		#        newFamilies.append(family.split())
+		#    newFamilies.append(family)
+		#families = newFamilies
 		newFamilies = []
 		for family in families:
-			if len(family.getMembers()) > len(families):
+		        if len(family.getMembers()) > len(families):
 				newFamilies.append(family.split())
+	
 			stillAlive = family.update()
 			if stillAlive: newFamilies.append(family)
 		families = newFamilies
 
 		# More efficiently update the familie members
 		familyMembers = np.array([family.getMembers() for family in families])
-		newMembers = update(familyMembers)
+		newMembers = update(familyMembers,0)
 		[family.setMembers(newMembers[n]) for n, family in enumerate(families)]
 
 		# New diseases and development update, due to encounters
+		
 		immunities = []
+		developments=[]
 		for family in families:
 			if family.getWaterSteps() != 0:
 				continue
 			encounters = family.getFamilyEncounters(families)
-			encounters.append(family.getCommunityEncounters(communities))
+			#if FARMING: encounters.append(family.getCommunityEncounters(communities))
 			immunity = family.getImmunity()
+			
 			immunities.append(immunity)
+			development=family.getDevelopment()
+			developments.append(development)
+			#if t==150:print(encounters[len(encounters)-1])
 			for encounter in encounters:
 				disease = encounter.getImmunity()
-				pC.diseaseSpread(family, disease, immunity)
+				dd=pC.diseaseSpread(family, disease, immunity, dd)
 				family.growImmunity(disease)
-
+		
+		#FARMING SECTION
+		
+		agri = agriculturecentres(t)
+		if agri:
+			members = [random.randint(0, settings.MAXAGE) for i in range(settings.COMMUNITYSIZE)]
+			immunity = np.mean(immunities)
+			development=np.mean(developments)
+			community = pC.Community(members, agri, immunity, development)
+			communities.append(community)
+			FARMING=True
+			
 		for community in communities:
-			encounters = community.getEncounters(families)
+			#loc=family.getLocation()
+			farmingmembers = community.getMembers()
+			
+			#print(GRIDPOPULATION[k[0],k[1]])
+			numFarmers += len(farmingmembers)
+			totAgeF += sum(farmingmembers)
+	        
+		
+		
+		#Communities Changes	
+		
+#		if FARMING:
+#		       newCommunities=[]
+#		       for community in communities:
+#		           if len(community.getMembers())>len(communities):
+#		               newCommunities.append(community.split())
+#		           stillAlive=community.update()
+#		           if stillAlive: newCommunities.append(community)
+#		       communities=newCommunities
+#		           
+ 		newCommunities = []
+ 		if FARMING:
+          		newFamilies=[]
+          		for family in families:
+             		         start,community=family.startCommunity()
+             		         if start: communities.append(community)
+             		         stillAlive = family.update()
+            			 if stillAlive: newFamilies.append(family)
+            			 
+          		families=newFamilies	 
+		for community in communities:
+		        if len(community.getMembers()) > len(families) and len(community.getMembers())>500:
+				families.append(community.splitexplorers())
+	
+			stillAlive = community.update(cattlesavailable(community.getLocation()))
+			if stillAlive: newCommunities.append(community)
+		communities = newCommunities
+
+
+                # More efficiently update the familie members
+		communityMembers = np.array([community.getMembers() for community in communities])
+		communityLocation = np.array([community.getLocation() for community in communities])
+		newMembers = update(communityMembers,1,communityLocation)
+		#print(n)
+		[community.setMembers(newMembers[n]) for n, community in enumerate(communities)]
+		
+		for community in communities:
+      		        d=pC.getCondition(community,GRIDDENSITY,d)
+#		for community in communities:
+#		       print(len(community.getMembers()))
+##
+#      		
+
+	#	for community in communities:
+	#		encounters = community.getEncounters(families)
 
 		# Get some feedback on the world population
-		numPersons, totAge = 0, 0
-		for family in families:
-			loc=family.getLocation()
-			members = family.getMembers()
-			pC.modifygrid(loc[0],loc[1],len(members))
-			numPersons += len(members)
-			totAge += sum(members)
-		pC.griddensity()
+		if t>1:
+		      numPersonsprev=numPersons
+		
+		       
+		if t>1:
+		    rateofgrowth=float((numPersons-numPersonsprev))*100/numPersonsprev
+	        else:
+	            rateofgrowth=0
 
 		fig.canvas.draw()
+		plt.pause(0.001)
+		#time.sleep(0.001)
 		print "Timestep ",t
-		print "Total people {}".format(numPersons)
+		print "Total hunters {}".format(numPersons)
 		print "Average age {}".format(totAge/float(numPersons))
+		print "Total farmers {}".format(numFarmers)
+		if FARMING:print "Average age {}".format(totAgeF/float(numFarmers))
+		
+		print "No of Deaths by Malnutrition yet {}".format(d)
+		print "No of Deaths by Diseases yet {}".format(dd)
+		print "Rate of Growth {}".format(rateofgrowth)
+		
