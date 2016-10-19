@@ -17,17 +17,16 @@ def init():
 	"""
 	Other tweaking variables
 	"""
-	global DENSITYFACTOR, MAXAGE, MAXAGESPREAD, BABYRANGE, HUNTERBABYCHANCE, FARMERBABYCHANCE, MINFOOD, ENCOUNTERDIST, RECOVERYRATE, IMMUNITYGROWTH, HUNGERDYING
+	global DENSITYFACTOR, MAXAGE, BABYRANGE, HUNTERBABYCHANCE, ENCOUNTERDIST, IMMUNITYGROWTH, HUNGERDYING, TEMPNORM
 	DENSITYFACTOR = 0.1 # defines how dense the population in communities is
 	MAXAGE = 40 # defines a mean year of dying of old age
-	MAXAGESPREAD = MAXAGE/10.0 # defines the spread in dying of old age
 	BABYRANGE = (16, 35) # range of ages for getting a baby
 	HUNTERBABYCHANCE = 0.125 # chance of heaving a baby each year for hunters
-	FARMERBABYCHANCE = 0.250 # chance of heaving a baby each year for farmers
 	ENCOUNTERDIST = 10 #km? the distance withing an encounter 'counts'
 	IMMUNITYGROWTH = .06 # factor to define the amount of immunity growth due to 
 					   # encounters with diseases
-        HUNGERDYING = 500
+        HUNGERDYING = 500 # Tweaking variable for influencing the population density normalisation
+        TEMPNORM = .05 # Tweaking variable for influencing the temperature normalisation
 
 	"""
 	Traveling
@@ -38,5 +37,12 @@ def init():
 	travelDist = 300 #km
 	LANDMAP = Image.open("land.jpg").load()
 	WATERCHANCE = 0.1
-	#print("opened Land2")
-	time.sleep(1)
+	
+	"""
+	Famer variables
+	"""
+	global FARMERBABYCHANCE, EXPLORERCHANCE, COMMUNITYHUNGERDYING, EXPLORERTRAVEL
+	FARMERBABYCHANCE = 0.250 # chance of heaving a baby each year for farmers
+	EXPLORERCHANCE = 0.5 # Chance of sending out an explorer
+	COMMUNITYHUNGERDYING = 0.01
+	EXPLORERTRAVEL = 0.1
